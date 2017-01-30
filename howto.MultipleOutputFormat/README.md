@@ -63,3 +63,20 @@ For demonstration purpose, there're very simple, tiny implementation for line se
 (https://raw.githubusercontent.com/kmizumar/hadoop-junkbox/9b9c514c434f016258caaa98424617d956cf01e9/images/figure000.png)
 
 ## How it works
+SampleMultipleOutputFormat extends MultipleOutputFormat&lt;K, V&gt; and achieves the above requirements in the following way:
+
+### Override generateFileNameForKeyValue to send a record to your desired destination
+This method will be called by the framework with arguments such as "KEY000", 'AAAAA....' and "part-00001".
+"part-00001" is the original filename suggested by the framework.
+We can freely change the filename where this (key, value) record should be written to.
+
+In this toy project, we can just add a directory entry to the suggested filename.
+So if the key passed is "KEY000" and name passed is "part-00001" then we can simply return "KEY000/part-00001" as the desired output filename.
+The value argument is not used here.
+
+```
+    @Override
+    protected String generateFileNameForKeyValue(String key, byte[] value, String name) {
+        return new Path(key, name).toString();
+    }
+```
