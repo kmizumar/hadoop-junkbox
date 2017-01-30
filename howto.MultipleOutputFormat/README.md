@@ -92,3 +92,72 @@ So we can simply throw away the key and return null.
     }
 ```
 
+### Override getBaseRecordWriter to change output file format
+This method will be called by the framework with our generated output filename, like "KEY000/part-00001".
+We can use the substring before the '/' character to decide which RecordWriter class should be used for the output file.
+So we can simply return the following RecordWriter object when we find
+- "KEY000" -> LineRecordWriter object
+- "KEY001" -> LineRecordWriter object
+- "KEY002" -> PipeRecordWriter object
+- "KEY003" -> PipeRecordWriter object
+- "KEY004" -> CsvRecordWriter object
+- "KEY005" -> CsvRecordWriter object
+- "KEY006" -> TsvRecordWriter object
+- "KEY007" -> TsvRecordWriter object
+- "KEY008" -> LineRecordWriter object
+- "KEY009" -> LineRecordWriter object
+
+```
+    @Override
+    protected RecordWriter<String, byte[]> getBaseRecordWriter(
+            FileSystem fs, JobConf job, String name, Progressable arg3) throws IOException {
+        if (name == null) {
+            logger.error("name was null");
+            throw new IOException("Target name was null");
+        }
+        String key = name.substring(0, name.indexOf('/'));
+        RecordWriter<String, byte[]> recordWriter = recordWriterMap.get(key);
+        if (recordWriter != null) {
+            return recordWriter;
+        }
+        Path file = FileOutputFormat.getTaskOutputPath(job, name);
+        FSDataOutputStream out = fs.create(file, arg3);
+        switch (key) {
+            case KEY0:
+                recordWriter = new LineRecordWriter(out);
+                break;
+            case KEY1:
+                recordWriter = new LineRecordWriter(out);
+                break;
+            case KEY2:
+                recordWriter = new PipeRecordWriter(out);
+                break;
+            case KEY3:
+                recordWriter = new PipeRecordWriter(out);
+                break;
+            case KEY4:
+                recordWriter = new CsvRecordWriter(out);
+                break;
+            case KEY5:
+                recordWriter = new CsvRecordWriter(out);
+                break;
+            case KEY6:
+                recordWriter = new TsvRecordWriter(out);
+                break;
+            case KEY7:
+                recordWriter = new TsvRecordWriter(out);
+                break;
+            case KEY8:
+                recordWriter = new LineRecordWriter(out);
+                break;
+            case KEY9:
+                recordWriter = new LineRecordWriter(out);
+                break;
+            default:
+                logger.error("unknown key `{}'", key);
+                throw new IOException("Unsupported key specified");
+        }
+        recordWriterMap.put(key, recordWriter);
+        return recordWriter;
+    }
+```
