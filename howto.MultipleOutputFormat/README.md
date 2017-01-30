@@ -80,3 +80,15 @@ The value argument is not used here.
         return new Path(key, name).toString();
     }
 ```
+
+### Override generateActualKey to discard the key (optional)
+In this toy project, RecordWriters don't need a key since it's already included in the output filename (its parent's directory name, strictly speaking).
+So we can simply throw away the key and return null.
+
+```
+  @Override
+    protected String generateActualKey(String key, byte[] value) {
+        return null; // discard the key since it is already in the file path
+    }
+```
+
